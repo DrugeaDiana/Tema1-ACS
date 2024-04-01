@@ -1,5 +1,6 @@
 from app import webserver
 from flask import request, jsonify
+from app.task_runner import Job
 
 import os
 import json
@@ -46,10 +47,14 @@ def states_mean_request():
 
     # TODO
     # Register job. Don't wait for task to finish
+    job_id = webserver.job_counter
+    new_job = Job(job_id, "states_mean")
+    webserver.job_counter += 1
+    webserver.tasks_runner.submit_task(new_job)
     # Increment job_id counter
     # Return associated job_id
 
-    return jsonify({"status": "NotImplemented"})
+    return jsonify({"job_id": "job_id_" + job_id })
 
 @webserver.route('/api/state_mean', methods=['POST'])
 def state_mean_request():
