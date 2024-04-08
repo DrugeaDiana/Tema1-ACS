@@ -4,9 +4,9 @@ import csv
 class DataIngestor:
     def __init__(self, csv_path: str):
         # TODO: Read csv from csv_path
-
+        
         with open(csv_path, mode= 'r') as csvfile:
-            csv_reader = csv.DictReader(csvfile)
+            dictionary_data = csv.DictReader(csvfile)
 
 
         self.questions_best_is_min = [

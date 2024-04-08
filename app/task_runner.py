@@ -8,6 +8,15 @@ class Job:
     def __init__(self, id, type):
         self.id = id
         self.type = type
+        self.result = None
+        self.state = None
+        self.status = 'Pending'
+    
+    def set_question(self, question):
+        self.question = question
+
+    def set_state(self, state):
+        self.state = state
 
     def execute(self):
         match self.type:
