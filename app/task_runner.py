@@ -134,6 +134,28 @@ class Job:
         rez = rez.apply(lambda x: global_mean - x)
         self.result = self.turn_result_in_dict(rez)
 
+    def mean_by_category(self):
+        cols = ['Question', 'LocationDesc', 'StratificationCategory1', 'Stratification1']
+        rez = webserver.data_ingestor.data.loc[webserver.data_ingestor.data['Question'] 
+                                               == self.question].groupby(cols)['Data_Value'].mean()
+        rez.to_dict()
+        dictionary_result = dict()
+        for key in rez.keys():
+            dictionary_result.update({(key[1], key[2], key[3]) : rez[key]})
+        self.result = jsonify(dictionary_result)
+    
+    def state_mean_by_category(self):
+        cols = ['Question', 'LocationDesc', 'StratificationCategory1', 'Stratification1']
+        rez = webserver.data_ingestor.data[(webserver.data_ingestor.data['Question'] 
+                                            == self.question) & 
+                                            (webserver.data_ingestor.data['LocationDesc'] == 'Ohio')]
+        rez = rez.groupby(['Question', 'LocationDesc', 'StratificationCategory1', 'Stratification1'])['Data_Value'].mean()
+        rez.to_dict()
+        dictionary_result = dict()
+        for key in rez.keys():
+            dictionary_result.update({(key[2], key[3]) : rez[key]})
+        self.result = jsonify({self.state: dictionary_result})       
+
 
 class ThreadPool:
     def __init__(self):
@@ -151,10 +173,12 @@ class ThreadPool:
         self.all_tasks = []
         self.threads = []
         self._create_workers()
+        self.active = True
     
     def submit_task(self, task):
-        self.tasks_queue.append(task)
-        self.all_tasks.append(task)
+        if self.active is True:
+            self.tasks_queue.append(task)
+            self.all_tasks.append(task)
 
     def _get_num_threads(self):
         env_var = os.getenv('TP_NUM_OF_THREADS')
@@ -168,6 +192,8 @@ class ThreadPool:
             worker = TaskRunner(self.tasks_queue)
             worker.start()
             self.workers.append(worker)
+    
+
 
 class TaskRunner(Thread):
     def __init__(self, task_queue):

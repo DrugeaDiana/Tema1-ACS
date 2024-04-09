@@ -210,6 +210,14 @@ def state_mean_by_category_request():
 
     return jsonify({"job_id": "job_id_" + job_id })
 
+@webserver.route('/api/graceful_shutdown', methods=['GET'])
+def graceful_shutdown():
+    webserver.tasks_runner.active = False
+
+@webserver.route('/api/num_jobs', methods=['GET'])
+def num_jobs():
+    return jsonify({"data": webserver.tasks_runner.task_queue.size()})
+
 # You can check localhost in your browser to see what this displays
 @webserver.route('/')
 @webserver.route('/index')
