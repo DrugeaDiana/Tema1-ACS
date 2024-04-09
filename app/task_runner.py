@@ -42,82 +42,75 @@ class Job:
                 return 1
             case _:
                 return 0
+    def calculate_all_means(self):
+        cols = ["Question", "LocationDesc"]
+        col = 'Question'
+        rez = webserver.data_ingestor.data.loc[webserver.data_ingestor.data[col] ==
+                                               self.question].groupby(cols)['Data_Value'].mean()
+        return rez
+    
+    def turn_result_in_dict(self, rez):
+        rez = rez.to_dict()
+        values_dict = dict()
+        for key in rez.keys():
+            values_dict.update({key[1] : rez[key]})
+        return jsonify(rez)
 
     def states_mean(self):
-        sum = 0
-        counter = 0
-        for row in webserver.data_ingestor.dictionary_data:
-            if row["Question"] == self.question:
-                sum += row["Data_Value"]
-                counter +=1
-        rez = sum / counter
-        self.result = jsonify(rez)
+        rez = self.calculate_all_means()
+        rez = rez.sort_values()
+        self.result = self.turn_result_in_dict(rez)
 
     def calculate_state_mean(self, state):
-        sum = 0
-        counter = 0
-        for row in webserver.data_ingestor.dictionary_data:
-            if row["Question"] == self.question and row["State"] == state:
-                sum += row["Data_Value"]
-                counter +=1
-        rez = sum / counter
+        cols = ["Question", "LocationDesc"]
+        rez = webserver.data_ingestor.data.loc.groupby(cols)
+        rez = rez.get_group((self.question, state))['Data_Value'].mean()
         return rez
 
     def state_mean(self):
-        rez = self.calculate_state_mean()
+        rez = self.calculate_state_mean(self.state)
         self.result = jsonify(rez)
 
-    def calculate_all_means(self):
-        dictionary_by_states = dict()
-        dictionary_means = dict()
-        for row in webserver.data_ingestor.dictionary_data:
-            if row["Question"] == self.question:
-                if row["State"] not in dictionary_by_states:
-                    dictionary_by_states.update({row["State"] : {"sum" : 0, "counter" : 0}})
-                else :
-                    dictionary_by_states[row["State"]]["sum"] += row["Data_Value"]
-                    dictionary_by_states[row["State"]]["counter"] += 1 
-        for state in dictionary_by_states:
-            dictionary_means.update({state : dictionary_by_states[state]["sum"] / dictionary_by_states[state]["counter"]})
-        return dictionary_means
+
     
     def best5(self):
-        dictionary = self.calculate_all_means()
-        sorted_dict = dict()
-        rez = []
+        rez = self.calculate_all_means()
         if self.question in webserver.data_ingestor.questions_best_is_max:
-            sorted_dict(sorted(dictionary.items(), key= lambda t: t[1], reverse = True))
-            rez = more_itertools.take(5, sorted_dict.items)
+            rez = rez.sort_values(ascending=False)
         else:
-            sorted_dict(sorted(dictionary.items(), key= lambda t: t[1]))
-            rez = more_itertools.take(5, sorted_dict.items)
-        self.result = jsonify(rez)
+            rez = rez.sort_values()
+        sorted_dict = dict()
+        rez = rez.to_dict()
+        keys = rez.keys()
+        for i in range(5):
+            sorted_dict.update({keys[i][1] : rez[keys[i]]})
+
+        self.result = jsonify(sorted_dict)
 
     def worst5(self):
-        dictionary = self.calculate_all_means()
-        sorted_dict = dict()
-        rez = []
+        rez = self.calculate_all_means()
         if self.question in webserver.data_ingestor.questions_best_is_max:
-            sorted_dict(sorted(dictionary.items(), key= lambda t: t[1]))
-            rez = more_itertools.take(5, sorted_dict.items)
+            rez = rez.sort_values()
         else:
-            sorted_dict(sorted(dictionary.items(), key= lambda t: t[1], reverse = True))
-            rez = more_itertools.take(5, sorted_dict.items)
-        self.result = jsonify(rez)
+            rez = rez.sort_values(ascending = False)
+
+        sorted_dict = dict()
+        rez = rez.to_dict()
+        keys = rez.keys()
+        for i in range(5):
+            sorted_dict.update({keys[i][1] : rez[keys[i]]})
+
+        self.result = jsonify(sorted_dict)
 
     def global_mean(self):
-        sum = 0
-        counter = 0
         # Add synch here
         if webserver.data_ingestor.global_mean is not -1:
             self.result = jsonify(webserver.data_ingestor.global_mean)
             return
         # end synch
 
-        for row in webserver.data_ingestor.dictionary_data:
-            sum += row["Data_Value"]
-            counter +=1
-        rez = sum / counter
+        rez = webserver.data_ingestor.data.groupby(['Question'])
+        rez = rez.get_group((self.question,))['Data_Value'].mean()
         self.result = jsonify(rez)
         # add synch here
         webserver.data_ingestor.global_mean = rez
@@ -135,13 +128,11 @@ class Job:
         return rez
     
     def diff_from_mean(self):
-        states_means = dict()
-        for row in webserver.data_ingestor.dictionary_data:
-            if row["State"] not in states_means:
-                states_means.update(row["State"], self.state_diff_from_mean(row["State"]))
-        
-        rez = jsonify(states_means)
-        self.result = rez
+        self.global_mean()
+        global_mean = webserver.data_ingestor.global_mean
+        rez = self.calculate_all_means()
+        rez = rez.apply(lambda x: global_mean - x)
+        self.result = self.turn_result_in_dict(rez)
 
 
 class ThreadPool:

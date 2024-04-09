@@ -4,9 +4,10 @@ import csv
 import pandas as pd
 class DataIngestor:
     def __init__(self, csv_path: str):
-        # TODO: Read csv from csv_path
-        data = pd.read_csv(csv_path)
-        self.data_dict = data.to_dict(orient='records')
+        # TODO: Read csv from csv_path]
+        collumns = ['YearStart', 'YearEnd', 'LocationDesc','Question','Data_Value', 'StratificationCategory1', 'Stratification1']
+        data = pd.read_csv(csv_path, usecols=collumns)
+        self.data = data.dropna()
         self.global_mean = -1
 
         self.questions_best_is_min = [
