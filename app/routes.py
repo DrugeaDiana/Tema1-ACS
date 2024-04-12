@@ -1,10 +1,6 @@
-from app import webserver
 from flask import request, jsonify
+from app import webserver
 from app.task_runner import Job
-
-import os
-import json
-import logging
 
 # Example endpoint definition
 @webserver.route('/api/post_endpoint', methods=['POST'])
@@ -12,7 +8,6 @@ def post_endpoint():
     if request.method == 'POST':
         # Assuming the request contains JSON data
         data = request.json
-        print(f"got data in post {data}")
 
         # Process the received data
         # For demonstration purposes, just echoing back the received data
@@ -26,31 +21,32 @@ def post_endpoint():
 
 @webserver.route('/api/get_results/<job_id>', methods=['GET'])
 def get_response(job_id):
-    print(f"JobID is {job_id}")
-    # TODO
-    # Check if job_id is valid
-    # do some synch
+    '''Get results from a job if they're available'''
+    logger_text = "Input: " + str(job_id)
+    webserver.tasks_runner.logger.info(logger_text)
+
+    # Searching for the specific task
     for task in webserver.tasks_runner.all_tasks :
         if task.id == job_id :
-            if task.status == "Done":
-                print(f"found a guy done " + task.status + " " + task.type)
+            # If found, put in log that we found it with the specific status
+            logger_text = "Output: status: " + task.status
+            webserver.tasks_runner.logger.info(logger_text)
+
+            if task.status == "done":
+                logger_text = "Job is done. Result: " + str(task.result)
                 return jsonify({
                     'status': 'done',
                     'data': task.result
                 })
-            elif task.status == 'Running':
-                print(f"he runnnin' boys " + task.status)
+
+            if task.status == 'running':
                 return jsonify({'status': 'running'})
-    
-    # Check if job_id is done and return the result
-    #    res = res_for(job_id)
-    #    return jsonify({
-    #        'status': 'done',
-    #        'data': res
-    #    })
+
+    # Job_id not found logged
+    logger_text = "Get_results output: Invalid job_id"
+    webserver.tasks_runner.logger.error(logger_text)
 
     # If not, return running status
-    print(f"nothing was found")
     return jsonify({'status': "error",
                     'reason': 'Invalid job_id'})
 
@@ -58,31 +54,35 @@ def get_response(job_id):
 def states_mean_request():
     # Get request data
     data = request.json
-    print(f"Got request {data}")
-    webserver.tasks_runner.logger.info("States_mean with this data: %s", data)
-    # TODO
-    # Register job. Don't wait for task to finish
+
+    # Input Log
+    logger_text = "Input: " + str(data)
+    webserver.tasks_runner.logger.info(logger_text)
+
+    # Build new job and submit it
     job_id = webserver.job_counter
     job_id_string = "job_id_" + str(job_id)
     new_job = Job(job_id_string, "states_mean", webserver.data_ingestor)
     new_job.set_question(data['question'])
     webserver.job_counter += 1
     webserver.tasks_runner.submit_task(new_job)
-    # Increment job_id counter
-    # Return associated job_id
-    webserver.tasks_runner.logger.info("States_mean job %s", str(job_id))
+
+    # Log for the return value of the request:
+    logger_text = "Return: " + job_id_string
+    webserver.tasks_runner.logger.info(logger_text)
+
     return jsonify({"job_id": "job_id_" + str(job_id) })
 
 @webserver.route('/api/state_mean', methods=['POST'])
 def state_mean_request():
-    # TODO
     # Get request data
     data = request.json
-    print(f"Got request {data}")
 
-    # Register job. Don't wait for task to finish
-    # Increment job_id counter
-    # Return associated job_id
+    # Input Log
+    logger_text = "Input: " + str(data)
+    webserver.tasks_runner.logger.info(logger_text)
+
+    # Build new job and submit it
     job_id = webserver.job_counter
     job_id_string = "job_id_" + str(job_id)
     new_job = Job(job_id_string, "state_mean",webserver.data_ingestor)
@@ -91,36 +91,48 @@ def state_mean_request():
     webserver.job_counter += 1
     webserver.tasks_runner.submit_task(new_job)
 
+    # Log for the return value of the request:
+    logger_text = "Return: " + job_id_string
+    webserver.tasks_runner.logger.info(logger_text)
+
     return jsonify({"job_id": "job_id_" + str(job_id) })
 
 
 @webserver.route('/api/best5', methods=['POST'])
 def best5_request():
-    # TODO
     # Get request data
     data = request.json
     print(f"Got request {data}")
-    # Register job. Don't wait for task to finish
-    # Increment job_id counter
-    # Return associated 
+ 
+    # Input Log
+    logger_text = "Input: " + str(data)
+    webserver.tasks_runner.logger.info(logger_text)
+
+    # Build new job and submit it
     job_id = webserver.job_counter
     job_id_string = "job_id_" + str(job_id)
-    new_job = Job(job_id_string, "best5",webserver.data_ingestor)
+    new_job = Job(job_id_string, "best5", webserver.data_ingestor)
     new_job.set_question(data['question'])
     webserver.job_counter += 1
     webserver.tasks_runner.submit_task(new_job)
+
+    # Log for the return value of the request:
+    logger_text = "Return: " + job_id_string
+    webserver.tasks_runner.logger.info(logger_text)
 
     return jsonify({"job_id": "job_id_" + str(job_id) })
 
 @webserver.route('/api/worst5', methods=['POST'])
 def worst5_request():
-    # TODO
     # Get request data
     data = request.json
     print(f"Got request {data}")
-    # Register job. Don't wait for task to finish
-    # Increment job_id counter
-    # Return associated job_id
+
+    # Input Log
+    logger_text = "Input: " + str(data)
+    webserver.tasks_runner.logger.info(logger_text)
+
+    # Build new job and submit it
     job_id = webserver.job_counter
     job_id_string = "job_id_" + str(job_id)
     new_job = Job(job_id_string, "worst5",webserver.data_ingestor)
@@ -128,17 +140,22 @@ def worst5_request():
     webserver.job_counter += 1
     webserver.tasks_runner.submit_task(new_job)
 
+    # Log for the return value of the request:
+    logger_text = "Return: " + job_id_string
+    webserver.tasks_runner.logger.info(logger_text)
+
     return jsonify({"job_id": "job_id_" + str(job_id) })
 
 @webserver.route('/api/global_mean', methods=['POST'])
 def global_mean_request():
-    # TODO
-    # Get request data
     data = request.json
     print(f"Got request {data}")
-    # Register job. Don't wait for task to finish
-    # Increment job_id counter
-    # Return associated job_id
+
+    # Input Log
+    logger_text = "Input: " + str(data)
+    webserver.tasks_runner.logger.info(logger_text)
+
+    # Build new job and submit it
     job_id = webserver.job_counter
     job_id_string = "job_id_" + str(job_id)
     new_job = Job(job_id_string, "global_mean",webserver.data_ingestor)
@@ -146,34 +163,46 @@ def global_mean_request():
     webserver.job_counter += 1
     webserver.tasks_runner.submit_task(new_job)
 
+    # Log for the return value of the request:
+    logger_text = "Return: " + job_id_string
+    webserver.tasks_runner.logger.info(logger_text)
+
     return jsonify({"job_id": "job_id_" + str(job_id) })
 
 @webserver.route('/api/diff_from_mean', methods=['POST'])
 def diff_from_mean_request():
-    # TODO
     # Get request data
     data = request.json
-    print(f"Got request {data}")
-    # Register job. Don't wait for task to finish
-    # Increment job_id counter
-    # Return associated job_id
+
+    # Input Log
+    logger_text = "Input: " + str(data)
+    webserver.tasks_runner.logger.info(logger_text)
+
+    # Build new job and submit it
     job_id = webserver.job_counter
     job_id_string = "job_id_" + str(job_id)
     new_job = Job(job_id_string, "diff_from_mean",webserver.data_ingestor)
     new_job.set_question(data['question'])
     webserver.job_counter += 1
     webserver.tasks_runner.submit_task(new_job)
+
+    # Log for the return value of the request:
+    logger_text = "Return: " + job_id_string
+    webserver.tasks_runner.logger.info(logger_text)
+
     return jsonify({"job_id": "job_id_" + str(job_id) })
 
 @webserver.route('/api/state_diff_from_mean', methods=['POST'])
 def state_diff_from_mean_request():
-    # TODO
     # Get request data
     data = request.json
     print(f"Got request {data}")
-    # Register job. Don't wait for task to finish
-    # Increment job_id counter
-    # Return associated job_id
+
+    # Input Log
+    logger_text = "Input: " + str(data)
+    webserver.tasks_runner.logger.info(logger_text)
+
+    # Build new job and submit it
     job_id = webserver.job_counter
     job_id_string = "job_id_" + str(job_id)
     new_job = Job(job_id_string, "state_diff_from_mean",webserver.data_ingestor)
@@ -182,17 +211,23 @@ def state_diff_from_mean_request():
     webserver.job_counter += 1
     webserver.tasks_runner.submit_task(new_job)
 
+    # Log for the return value of the request:
+    logger_text = "Return: " + job_id_string
+    webserver.tasks_runner.logger.info(logger_text)
+
     return jsonify({"job_id": "job_id_" + str(job_id) })
 
 @webserver.route('/api/mean_by_category', methods=['POST'])
 def mean_by_category_request():
-    # TODO
     # Get request data
     data = request.json
     print(f"Got request {data}")
-    # Register job. Don't wait for task to finish
-    # Increment job_id counter
-    # Return associated job_id
+
+    # Input Log
+    logger_text = "Input: " + str(data)
+    webserver.tasks_runner.logger.info(logger_text)
+
+    # Build new job and submit it
     job_id = webserver.job_counter
     job_id_string = "job_id_" + str(job_id)
     new_job = Job(job_id_string, "mean_by_category",webserver.data_ingestor)
@@ -200,17 +235,22 @@ def mean_by_category_request():
     webserver.job_counter += 1
     webserver.tasks_runner.submit_task(new_job)
 
+    # Log for the return value of the request:
+    logger_text = "Return: " + job_id_string
+    webserver.tasks_runner.logger.info(logger_text)
+
     return jsonify({"job_id": "job_id_" + str(job_id) })
 
 @webserver.route('/api/state_mean_by_category', methods=['POST'])
 def state_mean_by_category_request():
-    # TODO
     # Get request data
     data = request.json
-    print(f"Got request {data}")
-    # Register job. Don't wait for task to finish
-    # Increment job_id counter
-    # Return associated job_id
+
+    # Input Log
+    logger_text = "Input: " + str(data)
+    webserver.tasks_runner.logger.info(logger_text)
+
+    # Build new job and submit it
     job_id = webserver.job_counter
     job_id_string = "job_id_" + str(job_id)
     new_job = Job(job_id_string, "state_mean_by_category",webserver.data_ingestor)
@@ -219,24 +259,38 @@ def state_mean_by_category_request():
     webserver.job_counter += 1
     webserver.tasks_runner.submit_task(new_job)
 
+    # Log for the return value of the request:
+    logger_text = "Return: " + job_id_string
+    webserver.tasks_runner.logger.info(logger_text)
+
     return jsonify({"job_id": "job_id_" + str(job_id) })
 
 @webserver.route('/api/graceful_shutdown', methods=['GET'])
 def graceful_shutdown():
     webserver.tasks_runner.active = False
     webserver.tasks_runner.wait_completion()
+
+    # Log for the return value of the request:
+    logger_text = "Server is closing down"
+    webserver.tasks_runner.logger.info(logger_text)
     return jsonify({'status' : 'closing down'})
 
 @webserver.route('/api/num_jobs', methods=['GET'])
 def num_jobs():
+    webserver.tasks_runner.logger.info("Jobs: " + str(webserver.tasks_runner.tasks_queue.qsize()))
     return jsonify({"data": webserver.tasks_runner.tasks_queue.qsize()})
 
 @webserver.route('/api/jobs', methods=['GET'])
 def jobs_list():
-    job_dict = dict()
+    '''Returns the list of jobs that have been submited so far'''
+    job_dict = {}
     for job in webserver.tasks_runner.all_tasks:
         job_dict[job.id] = job.status
-    
+
+    # Log for the return value of the request:
+    logger_text = "Return: " + str(job_dict)
+    webserver.tasks_runner.logger.info(logger_text)
+
     return jsonify({'status' : 'done',
                     'data' : job_dict})
 
