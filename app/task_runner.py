@@ -201,11 +201,11 @@ class ThreadPool:
     def __init__(self):
         '''Initializes the ThreadPool and the objects it uses'''
         self.create_directories()
-        self.num_threads = self._get_num_threads()
+        self.num_threads = self.get_num_threads()
         self.tasks_queue = Queue()
         self.all_tasks = []
         self.threads = []
-        self._create_workers()
+        self.create_threads()
         self.active = True
         self.logger = self.logger_setup()
 
@@ -237,19 +237,19 @@ class ThreadPool:
             self.tasks_queue.put(task)
             self.all_tasks.append(task)
 
-    def _get_num_threads(self):
+    def get_num_threads(self):
         '''Initializes the number of threads we can use'''
         env_var = os.getenv('TP_NUM_OF_THREADS')
         if env_var is not None:
             return int(env_var)
         return multiprocessing.cpu_count()
 
-    def _create_workers(self):
+    def create_threads(self):
         '''Creates all the threads that we use'''
         for _ in range(self.num_threads):
-            worker = TaskRunner(self.tasks_queue)
-            worker.start()
-            self.threads.append(worker)
+            new_thread = TaskRunner(self.tasks_queue)
+            new_thread.start()
+            self.threads.append(new_thread)
 
     def wait_completion(self):
         '''Makes sure that no new job is queued anymore and tells
