@@ -55,10 +55,10 @@ rez = rez.get_group((question,))['Data_Value'].mean()
 result = rez
 print(result)
 '''
-question = "Percent of adults aged 18 years and older who have an overweight classification"
-state = "Oklahoma"
-data = pd.read_csv('nutrition_activity_obesity_usa_subset.csv')
-rez = data.groupby(['Question'])
+question = "Percent of adults who engage in no leisure-time physical activity"
+state = "Ohio"
+data = pd.read_csv('unittests/nutrition_small.csv')
+'''rez = data.groupby(['Question'])
 rez = rez.get_group((question,))['Data_Value']
 global_mean = rez.mean()
 cols = ["Question", "LocationDesc"]
@@ -71,6 +71,24 @@ for key in rez.keys():
     values_dict[key[1]] = global_mean - rez[key]
 # add synch here
 # end synch
-print(global_mean, global_extra_mean)
+'''
+cols = ["Question", "LocationDesc"]
+col = 'Question'
+rez = data.loc[data[col]
+                == question].groupby(cols)['Data_Value'].mean()
+rez = rez.to_dict()
+values_dict = {}
+for key in rez.keys():
+    values_dict[key[1]] = rez[key]
+
+print(values_dict)
+'''
+
+cols = ["Question", "LocationDesc"]
+rez = data.groupby(cols)
+rez = rez.get_group((question, state))['Data_Value'].mean()
+result = {state : rez}
 with open("test_output", 'w') as outfile:
-    json.dump(values_dict, outfile)
+   json.dump(values_dict, outfile)
+'''
+print(result)

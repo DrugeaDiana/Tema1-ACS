@@ -50,8 +50,21 @@ def get_response(job_id):
     return jsonify({'status': "error",
                     'reason': 'Invalid job_id'})
 
+def create_job(task_name, data, state = False) :
+    '''Creates a new job and submits it into the threadpool's queue'''
+    job_id = webserver.job_counter
+    job_id_string = "job_id_" + str(job_id)
+    new_job = Job(job_id_string, task_name, webserver.data_ingestor)
+    new_job.set_question(data['question'])
+    if state is True:
+        new_job.set_state(data['state'])
+    webserver.job_counter += 1
+    webserver.tasks_runner.submit_task(new_job)
+    return job_id_string
+
 @webserver.route('/api/states_mean', methods=['POST'])
 def states_mean_request():
+    '''Handles the states_mean_request'''
     # Get request data
     data = request.json
 
@@ -60,21 +73,17 @@ def states_mean_request():
     webserver.tasks_runner.logger.info(logger_text)
 
     # Build new job and submit it
-    job_id = webserver.job_counter
-    job_id_string = "job_id_" + str(job_id)
-    new_job = Job(job_id_string, "states_mean", webserver.data_ingestor)
-    new_job.set_question(data['question'])
-    webserver.job_counter += 1
-    webserver.tasks_runner.submit_task(new_job)
+    job_id_string = create_job("states_mean", data, False)
 
     # Log for the return value of the request:
     logger_text = "Return: " + job_id_string
     webserver.tasks_runner.logger.info(logger_text)
 
-    return jsonify({"job_id": "job_id_" + str(job_id) })
+    return jsonify({"job_id": job_id_string })
 
 @webserver.route('/api/state_mean', methods=['POST'])
 def state_mean_request():
+    '''Handles the state_mean_request'''
     # Get request data
     data = request.json
 
@@ -83,94 +92,74 @@ def state_mean_request():
     webserver.tasks_runner.logger.info(logger_text)
 
     # Build new job and submit it
-    job_id = webserver.job_counter
-    job_id_string = "job_id_" + str(job_id)
-    new_job = Job(job_id_string, "state_mean",webserver.data_ingestor)
-    new_job.set_question(data['question'])
-    new_job.set_state(data['state'])
-    webserver.job_counter += 1
-    webserver.tasks_runner.submit_task(new_job)
+    job_id_string = create_job("state_mean", data, True)
 
     # Log for the return value of the request:
     logger_text = "Return: " + job_id_string
     webserver.tasks_runner.logger.info(logger_text)
 
-    return jsonify({"job_id": "job_id_" + str(job_id) })
+    return jsonify({"job_id": job_id_string})
 
 
 @webserver.route('/api/best5', methods=['POST'])
 def best5_request():
+    '''Handles best5 request'''
     # Get request data
     data = request.json
-    print(f"Got request {data}")
- 
+
     # Input Log
     logger_text = "Input: " + str(data)
     webserver.tasks_runner.logger.info(logger_text)
 
     # Build new job and submit it
-    job_id = webserver.job_counter
-    job_id_string = "job_id_" + str(job_id)
-    new_job = Job(job_id_string, "best5", webserver.data_ingestor)
-    new_job.set_question(data['question'])
-    webserver.job_counter += 1
-    webserver.tasks_runner.submit_task(new_job)
+    job_id_string = create_job("best5", data, False)
 
     # Log for the return value of the request:
     logger_text = "Return: " + job_id_string
     webserver.tasks_runner.logger.info(logger_text)
 
-    return jsonify({"job_id": "job_id_" + str(job_id) })
+    return jsonify({"job_id": job_id_string })
 
 @webserver.route('/api/worst5', methods=['POST'])
 def worst5_request():
+    '''Handles worst5 request'''
     # Get request data
     data = request.json
-    print(f"Got request {data}")
 
     # Input Log
     logger_text = "Input: " + str(data)
     webserver.tasks_runner.logger.info(logger_text)
 
     # Build new job and submit it
-    job_id = webserver.job_counter
-    job_id_string = "job_id_" + str(job_id)
-    new_job = Job(job_id_string, "worst5",webserver.data_ingestor)
-    new_job.set_question(data['question'])
-    webserver.job_counter += 1
-    webserver.tasks_runner.submit_task(new_job)
+    job_id_string = create_job("worst5", data, False)
 
     # Log for the return value of the request:
     logger_text = "Return: " + job_id_string
     webserver.tasks_runner.logger.info(logger_text)
 
-    return jsonify({"job_id": "job_id_" + str(job_id) })
+    return jsonify({"job_id": job_id_string })
 
 @webserver.route('/api/global_mean', methods=['POST'])
 def global_mean_request():
+    '''Handles global_mean request'''
     data = request.json
-    print(f"Got request {data}")
 
     # Input Log
     logger_text = "Input: " + str(data)
     webserver.tasks_runner.logger.info(logger_text)
 
     # Build new job and submit it
-    job_id = webserver.job_counter
-    job_id_string = "job_id_" + str(job_id)
-    new_job = Job(job_id_string, "global_mean",webserver.data_ingestor)
-    new_job.set_question(data['question'])
-    webserver.job_counter += 1
-    webserver.tasks_runner.submit_task(new_job)
+    job_id_string = create_job("global_mean", data, False)
 
     # Log for the return value of the request:
     logger_text = "Return: " + job_id_string
     webserver.tasks_runner.logger.info(logger_text)
 
-    return jsonify({"job_id": "job_id_" + str(job_id) })
+    return jsonify({"job_id": job_id_string })
 
 @webserver.route('/api/diff_from_mean', methods=['POST'])
 def diff_from_mean_request():
+    '''Handles diff_from_mean request'''
     # Get request data
     data = request.json
 
@@ -179,70 +168,55 @@ def diff_from_mean_request():
     webserver.tasks_runner.logger.info(logger_text)
 
     # Build new job and submit it
-    job_id = webserver.job_counter
-    job_id_string = "job_id_" + str(job_id)
-    new_job = Job(job_id_string, "diff_from_mean",webserver.data_ingestor)
-    new_job.set_question(data['question'])
-    webserver.job_counter += 1
-    webserver.tasks_runner.submit_task(new_job)
+    job_id_string = create_job("diff_from_mean", data, False)
 
     # Log for the return value of the request:
     logger_text = "Return: " + job_id_string
     webserver.tasks_runner.logger.info(logger_text)
 
-    return jsonify({"job_id": "job_id_" + str(job_id) })
+    return jsonify({"job_id": job_id_string })
 
 @webserver.route('/api/state_diff_from_mean', methods=['POST'])
 def state_diff_from_mean_request():
+    '''Handles state_diff_from_mean request'''
     # Get request data
     data = request.json
-    print(f"Got request {data}")
 
     # Input Log
     logger_text = "Input: " + str(data)
     webserver.tasks_runner.logger.info(logger_text)
 
     # Build new job and submit it
-    job_id = webserver.job_counter
-    job_id_string = "job_id_" + str(job_id)
-    new_job = Job(job_id_string, "state_diff_from_mean",webserver.data_ingestor)
-    new_job.set_question(data['question'])
-    new_job.set_state(data['state'])
-    webserver.job_counter += 1
-    webserver.tasks_runner.submit_task(new_job)
+    job_id_string = create_job("state_diff_from_mean", data, True)
 
     # Log for the return value of the request:
     logger_text = "Return: " + job_id_string
     webserver.tasks_runner.logger.info(logger_text)
 
-    return jsonify({"job_id": "job_id_" + str(job_id) })
+    return jsonify({"job_id": job_id_string })
 
 @webserver.route('/api/mean_by_category', methods=['POST'])
 def mean_by_category_request():
+    '''Handles mean_by_category request'''
     # Get request data
     data = request.json
-    print(f"Got request {data}")
 
     # Input Log
     logger_text = "Input: " + str(data)
     webserver.tasks_runner.logger.info(logger_text)
 
     # Build new job and submit it
-    job_id = webserver.job_counter
-    job_id_string = "job_id_" + str(job_id)
-    new_job = Job(job_id_string, "mean_by_category",webserver.data_ingestor)
-    new_job.set_question(data['question'])
-    webserver.job_counter += 1
-    webserver.tasks_runner.submit_task(new_job)
+    job_id_string = create_job("mean_by_category", data, False)
 
     # Log for the return value of the request:
     logger_text = "Return: " + job_id_string
     webserver.tasks_runner.logger.info(logger_text)
 
-    return jsonify({"job_id": "job_id_" + str(job_id) })
+    return jsonify({"job_id": job_id_string })
 
 @webserver.route('/api/state_mean_by_category', methods=['POST'])
 def state_mean_by_category_request():
+    '''Handles state_mean_by_category request'''
     # Get request data
     data = request.json
 
@@ -251,22 +225,17 @@ def state_mean_by_category_request():
     webserver.tasks_runner.logger.info(logger_text)
 
     # Build new job and submit it
-    job_id = webserver.job_counter
-    job_id_string = "job_id_" + str(job_id)
-    new_job = Job(job_id_string, "state_mean_by_category",webserver.data_ingestor)
-    new_job.set_question(data['question'])
-    new_job.set_state(data['state'])
-    webserver.job_counter += 1
-    webserver.tasks_runner.submit_task(new_job)
+    job_id_string = create_job("state_mean_by_category", data, True)
 
     # Log for the return value of the request:
     logger_text = "Return: " + job_id_string
     webserver.tasks_runner.logger.info(logger_text)
 
-    return jsonify({"job_id": "job_id_" + str(job_id) })
+    return jsonify({"job_id": job_id_string })
 
 @webserver.route('/api/graceful_shutdown', methods=['GET'])
 def graceful_shutdown():
+    '''Handles graceful_shutdown request'''
     webserver.tasks_runner.active = False
     webserver.tasks_runner.wait_completion()
 
@@ -277,6 +246,7 @@ def graceful_shutdown():
 
 @webserver.route('/api/num_jobs', methods=['GET'])
 def num_jobs():
+    '''Handles num_job request'''
     webserver.tasks_runner.logger.info("Jobs: " + str(webserver.tasks_runner.tasks_queue.qsize()))
     return jsonify({"data": webserver.tasks_runner.tasks_queue.qsize()})
 

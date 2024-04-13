@@ -27,7 +27,6 @@ class Job:
         '''Sets the state for which the object has to calculate things for'''
         self.state = state
 
-
     def execute(self):
         '''Checks what it has to calculate and calls the specific function'''
         self.status = 'running'
